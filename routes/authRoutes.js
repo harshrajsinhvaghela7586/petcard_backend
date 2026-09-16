@@ -8,7 +8,11 @@ const {
   logout,
   me,
   getAdminProfile,
-  updateAdminProfile
+  updateAdminProfile,
+  forgotPassword,
+  verifyForgotPasswordOtp,
+  resendForgotPasswordOtp,
+  resetPassword,
 } = require("../controllers/authController");
 const { requireAuth } = require("../middleware/authMiddleware");
 
@@ -32,6 +36,31 @@ router.put(
     "/admin/profile",
     requireAuth,
     updateAdminProfile
+);
+
+
+/* ==============================
+   FORGOT PASSWORD
+============================== */
+
+router.post(
+  "/forgot-password",
+  forgotPassword
+);
+
+router.post(
+  "/verify-forgot-password-otp",
+  verifyForgotPasswordOtp
+);
+
+router.post(
+  "/resend-forgot-password-otp",
+  resendForgotPasswordOtp
+);
+
+router.post(
+  "/reset-password",
+  resetPassword
 );
 
 module.exports = router;
