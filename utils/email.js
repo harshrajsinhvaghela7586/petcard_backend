@@ -3,7 +3,7 @@ const nodemailer = require("nodemailer");
 // =========================================================
 // EMAIL ENVIRONMENT VARIABLES
 // =========================================================
-
+const sanitizeHtml = require("sanitize-html");
 const requiredEmailEnv = [
   "EMAIL_HOST",
   "EMAIL_PORT",
@@ -866,7 +866,505 @@ const buildContactReplyEmail = ({
 </html>
 `;
 };
+// =========================================================
+// NEWSLETTER EMAIL
+// =========================================================
 
+const buildNewsletterEmail = ({
+  preheader = "",
+  heading = "",
+  content = "",
+  ctaText = "",
+  ctaUrl = "",
+}) => {
+  const safePreheader = escapeHtml(preheader);
+  const safeHeading = escapeHtml(heading);
+  const safeCtaText = escapeHtml(ctaText);
+  const safeCtaUrl = escapeHtml(ctaUrl);
+
+  /*
+   * Jodit content is already HTML.
+   * Sanitize it without escaping HTML tags so that
+   * h2, h3, h4, p, ul, ol etc. render properly.
+   */
+  const newsletterContent = sanitizeHtml(
+    String(content || ""),
+    {
+      allowedTags: [
+        "p",
+        "br",
+        "strong",
+        "b",
+        "em",
+        "i",
+        "u",
+        "h2",
+        "h3",
+        "h4",
+        "ul",
+        "ol",
+        "li",
+        "a",
+      ],
+
+      allowedAttributes: {
+        a: [
+          "href",
+          "target",
+          "rel",
+        ],
+      },
+
+      allowedSchemes: [
+        "http",
+        "https",
+        "mailto",
+      ],
+    }
+  )
+    .replace(
+      /<h2>/gi,
+      `<h2 style="
+        margin:0 0 18px;
+        font-size:25px;
+        line-height:1.3;
+        font-weight:800;
+        color:#381b0e;
+      ">`
+    )
+    .replace(
+      /<h3>/gi,
+      `<h3 style="
+        margin:28px 0 14px;
+        font-size:19px;
+        line-height:1.4;
+        font-weight:800;
+        color:#381b0e;
+      ">`
+    )
+    .replace(
+      /<h4>/gi,
+      `<h4 style="
+        margin:22px 0 9px;
+        font-size:15px;
+        line-height:1.5;
+        font-weight:800;
+        color:#381b0e;
+      ">`
+    )
+    .replace(
+      /<p>/gi,
+      `<p style="
+        margin:0 0 18px;
+        font-size:15px;
+        line-height:1.8;
+        color:#6f625c;
+      ">`
+    )
+    .replace(
+      /<ul>/gi,
+      `<ul style="
+        margin:0 0 20px;
+        padding-left:22px;
+        color:#6f625c;
+      ">`
+    )
+    .replace(
+      /<ol>/gi,
+      `<ol style="
+        margin:0 0 20px;
+        padding-left:22px;
+        color:#6f625c;
+      ">`
+    )
+    .replace(
+      /<li>/gi,
+      `<li style="
+        margin-bottom:8px;
+        font-size:15px;
+        line-height:1.7;
+        color:#6f625c;
+      ">`
+    )
+    .replace(
+      /<a /gi,
+      `<a style="
+        color:#ff7a00;
+        font-weight:700;
+        text-decoration:none;
+      " `
+    );
+
+  const ctaBlock =
+    safeCtaText && safeCtaUrl
+      ? `
+        <div
+          style="
+            text-align:center;
+            margin:30px 0 5px;
+          "
+        >
+          <a
+            href="${safeCtaUrl}"
+            target="_blank"
+            rel="noopener noreferrer"
+            style="
+              display:inline-block;
+              padding:14px 26px;
+              background:#ff7a00;
+              color:#ffffff;
+              text-decoration:none;
+              border-radius:12px;
+              font-size:13px;
+              font-weight:700;
+            "
+          >
+            ${safeCtaText} →
+          </a>
+        </div>
+      `
+      : "";
+
+  return `
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>
+    ${safeHeading || "PetCard Newsletter"}
+  </title>
+
+  <style>
+
+    @media only screen and (max-width:600px) {
+
+      .email-wrapper {
+        padding:15px 8px !important;
+      }
+
+      .email-card {
+        border-radius:16px !important;
+      }
+
+      .email-header,
+      .email-content,
+      .email-footer {
+        padding-left:22px !important;
+        padding-right:22px !important;
+      }
+
+      .email-heading {
+        font-size:24px !important;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+
+<body
+  style="
+    margin:0;
+    padding:0;
+    background:#fff8f2;
+    font-family:Arial,Helvetica,sans-serif;
+    color:#381b0e;
+  "
+>
+
+
+<!-- PREHEADER -->
+
+<div
+  style="
+    display:none;
+    max-height:0;
+    overflow:hidden;
+    opacity:0;
+    color:transparent;
+  "
+>
+  ${safePreheader}
+</div>
+
+
+<!-- OUTER -->
+
+<table
+  width="100%"
+  cellpadding="0"
+  cellspacing="0"
+  border="0"
+  class="email-wrapper"
+  style="
+    background:#fff8f2;
+    padding:30px 12px;
+  "
+>
+
+<tr>
+
+<td align="center">
+
+
+<!-- EMAIL CARD -->
+
+<table
+  width="100%"
+  cellpadding="0"
+  cellspacing="0"
+  border="0"
+  class="email-card"
+  style="
+    max-width:650px;
+    background:#ffffff;
+    border-radius:22px;
+    overflow:hidden;
+    border:1px solid #f0e2d7;
+  "
+>
+
+
+<!-- HEADER -->
+
+<tr>
+
+<td
+  class="email-header"
+  style="
+    padding:30px 35px;
+    background:#fff3e7;
+    border-bottom:1px solid #f1dfd0;
+  "
+>
+
+<table
+  width="100%"
+  cellpadding="0"
+  cellspacing="0"
+  border="0"
+>
+
+<tr>
+
+<td>
+
+<div
+  style="
+    font-size:28px;
+    font-weight:800;
+    letter-spacing:-0.5px;
+  "
+>
+
+<span style="color:#381b0e;">
+  PET
+</span>
+
+<span style="color:#ff7a00;">
+  CARD
+</span>
+
+</div>
+
+
+<div
+  style="
+    margin-top:5px;
+    font-size:10px;
+    letter-spacing:1.5px;
+    font-weight:700;
+    color:#8b7569;
+  "
+>
+  WORLD'S FIRST AI-ENABLED PET ID
+</div>
+
+</td>
+
+
+<td
+  align="right"
+  valign="middle"
+  style="
+    font-size:30px;
+  "
+>
+  🐾
+</td>
+
+</tr>
+
+</table>
+
+</td>
+
+</tr>
+
+
+<!-- CONTENT -->
+
+<tr>
+
+<td
+  class="email-content"
+  style="
+    padding:38px 35px 36px;
+  "
+>
+
+
+<p
+  style="
+    margin:0 0 8px;
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:1px;
+    color:#ff7a00;
+  "
+>
+  PETCARD NEWSLETTER
+</p>
+
+
+<h1
+  class="email-heading"
+  style="
+    margin:0 0 26px;
+    font-size:29px;
+    line-height:1.3;
+    color:#381b0e;
+  "
+>
+  ${safeHeading}
+</h1>
+
+
+<!-- JODIT HTML CONTENT -->
+
+<div
+  style="
+    font-size:15px;
+    line-height:1.8;
+    color:#6f625c;
+  "
+>
+
+${newsletterContent}
+
+</div>
+
+
+<!-- CTA -->
+
+${ctaBlock}
+
+
+</td>
+
+</tr>
+
+
+<!-- FOOTER -->
+
+<tr>
+
+<td
+  class="email-footer"
+  style="
+    padding:25px 35px;
+    background:#381b0e;
+  "
+>
+
+<p
+  style="
+    margin:0 0 8px;
+    color:#ffffff;
+    font-size:16px;
+    font-weight:800;
+  "
+>
+  PET<span style="color:#ff9b2f;">CARD</span>
+</p>
+
+
+<p
+  style="
+    margin:0 0 14px;
+    color:#d8cbc4;
+    font-size:12px;
+    line-height:1.6;
+  "
+>
+  Everything your pet needs.
+  All in one card.
+</p>
+
+
+<p
+  style="
+    margin:0;
+    font-size:11px;
+    line-height:1.6;
+    color:#a99991;
+  "
+>
+  © ${new Date().getFullYear()}
+  PetCard. All rights reserved.
+</p>
+
+
+<p
+  style="
+    margin:8px 0 0;
+    font-size:11px;
+  "
+>
+
+<a
+  href="https://petcard.in"
+  target="_blank"
+  style="
+    color:#ff9b2f;
+    text-decoration:none;
+  "
+>
+  petcard.in
+</a>
+
+</p>
+
+
+</td>
+
+</tr>
+
+
+</table>
+
+</td>
+
+</tr>
+
+</table>
+
+</body>
+
+</html>
+`;
+};
 
 // =========================================================
 // EXPORTS
@@ -876,4 +1374,5 @@ module.exports = {
   sendEmail,
   sendAdminOtp,
   buildContactReplyEmail,
+  buildNewsletterEmail
 };
