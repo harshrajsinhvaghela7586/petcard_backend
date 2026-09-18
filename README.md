@@ -33,16 +33,7 @@ npm install
 npm run dev
 ```
 
-5. To create the handover admin:
 
-```bash
-npm run seed:admin
-```
-
-Seed credentials:
-
-- Email: `admin@petcard.com`
-- Password: `Admin@123`
 
 The seed contains the bcrypt hash; MongoDB never receives the plaintext password.
 
