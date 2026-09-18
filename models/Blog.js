@@ -1,30 +1,11 @@
 const mongoose = require("mongoose");
 
-const blogSectionSchema = new mongoose.Schema(
-  {
-    heading: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
-    paragraphs: {
-      type: [String],
-      required: true,
-      validate: {
-        validator: (value) =>
-          Array.isArray(value) &&
-          value.length > 0 &&
-          value.every((item) => item.trim()),
-        message: "Each section must contain at least one paragraph.",
-      },
-    },
-  },
-  { _id: false }
-);
-
 const blogSchema = new mongoose.Schema(
   {
+    /* =========================================================
+       BASIC BLOG INFORMATION
+       ========================================================= */
+
     title: {
       type: String,
       required: true,
@@ -59,6 +40,16 @@ const blogSchema = new mongoose.Schema(
       trim: true,
     },
 
+    // Jodit HTML content
+    content: {
+      type: String,
+      required: true,
+    },
+
+    /* =========================================================
+       AUTHOR
+       ========================================================= */
+
     author: {
       type: String,
       required: true,
@@ -66,10 +57,22 @@ const blogSchema = new mongoose.Schema(
       default: "PetCard Care Team",
     },
 
+    /*
+     * User submitted blogs ke liye email store hoga.
+     * Admin blogs mein empty reh sakta hai.
+     */
+    email: {
+      type: String,
+      default: "",
+      trim: true,
+      lowercase: true,
+    },
+
     readTime: {
       type: String,
       required: true,
       trim: true,
+      default: "5 min read",
     },
 
     date: {
@@ -77,32 +80,28 @@ const blogSchema = new mongoose.Schema(
       default: Date.now,
     },
 
+    /* =========================================================
+       IMAGE
+       ========================================================= */
+
     image: {
       type: String,
       default: "",
     },
 
-    intro: {
-      type: String,
-      required: true,
-      trim: true,
+    /* =========================================================
+       BLOG STATS
+       ========================================================= */
+
+    views: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
 
-    sections: {
-      type: [blogSectionSchema],
-      default: [],
-    },
-
-    takeaways: {
-      type: [String],
-      default: [],
-    },
-
-    note: {
-      type: String,
-      default: "",
-      trim: true,
-    },
+    /* =========================================================
+       BLOG TYPE
+       ========================================================= */
 
     isFeatured: {
       type: Boolean,
@@ -118,10 +117,43 @@ const blogSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+
+    /* =========================================================
+       APPROVAL SYSTEM
+       ========================================================= */
+
+    source: {
+      type: String,
+      enum: ["admin", "user"],
+      default: "admin",
+    },
+
+    status: {
+      type: String,
+      enum: [
+        "pending",
+        "approved",
+        "rejected",
+      ],
+      default: "approved",
+    },
+
+    approvedAt: {
+      type: Date,
+      default: null,
+    },
+
+    rejectedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-module.exports = mongoose.model("Blog", blogSchema);
+module.exports = mongoose.model(
+  "Blog",
+  blogSchema
+);
